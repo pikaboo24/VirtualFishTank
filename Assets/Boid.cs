@@ -8,13 +8,20 @@ public class Boid : MonoBehaviour
     public Rigidbody rigidBody;
     public float speedMax = 2;
     public float accelMax = 3;
-   
+    private void Awake()
+    {
+        rigidBody = GetComponent<Rigidbody>();
+        
+    }
     private void Start()
     {
         targetObject = GameObject.Find("target");
         rigidBody = GetComponent<Rigidbody>();
     }
-
+    private void Update()
+    {
+        AllignToVelocity();
+    }
     private void FixedUpdate()
     {
 
@@ -34,9 +41,10 @@ public class Boid : MonoBehaviour
         rigidBody.linearVelocity = Vector3.ClampMagnitude(rigidBody.linearVelocity, speedMax);
 
 
-        //Orient toward velocity
-        transform.forward = rigidBody.linearVelocity;
-
+    }
+    public void AllignToVelocity()
+    {
+        transform.forward = Vector3.RotateTowards(transform.forward, rigidBody.linearVelocity.normalized, Mathf.Deg2Rad * 1800 * Time.fixedDeltaTime, 100);
     }
 
 

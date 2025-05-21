@@ -24,7 +24,7 @@ public class BoidSimulationControl : MonoBehaviour
             GameObject spawnedBoid = Instantiate(BoidsPrefab, position, rotation);
             boids.Add(spawnedBoid.GetComponent<Boid>());
             spawnedBoid.GetComponent<Renderer>().material.SetColor("_BaseColor", Random.ColorHSV(0, 1, 0f, 1f, 0.5f, 1f));
-            spawnedBoid.GetComponent<Rigidbody>().linearVelocity = Random.onUnitSphere * 0.3f;
+            spawnedBoid.GetComponent<Rigidbody>().linearVelocity = Random.insideUnitSphere * 0.3f;
 
             spawnedBoid.transform.localScale *= Random.Range(0.9f, 3f);
         }
