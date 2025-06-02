@@ -179,6 +179,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 217434733730855265, guid: f897bb6f1e1ca6e488704ea6543a2907, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 526034059645048691, guid: f897bb6f1e1ca6e488704ea6543a2907, type: 3}
       propertyPath: accelMax
       value: 3
@@ -190,6 +194,10 @@ PrefabInstance:
     - target: {fileID: 676342791721572840, guid: f897bb6f1e1ca6e488704ea6543a2907, type: 3}
       propertyPath: m_Name
       value: boid
+      objectReference: {fileID: 0}
+    - target: {fileID: 4704192958434421656, guid: f897bb6f1e1ca6e488704ea6543a2907, type: 3}
+      propertyPath: m_Constraints
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -347,7 +355,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BoidsPrefab: {fileID: 676342791721572840, guid: f897bb6f1e1ca6e488704ea6543a2907, type: 3}
-  numboidToSpawn: 10
+  foodPrefab: {fileID: 2851859587008556783, guid: 5540831f9bd2a0444bc7c46becba06b7, type: 3}
+  targetObject: {fileID: 514658330}
+  numboidToSpawn: 3
   boids: []
   controlMode: 0
 --- !u!1 &410087039
