@@ -79,6 +79,10 @@ public class BoidSimulationControl : MonoBehaviour
         for (int i = 0; i < boids.Count; i++)
         {
             boids[i].currentLinearAcceleration = Vector3.zero;
+        }
+        for (int i = 0; i < boids.Count; i++)
+        {
+            boids[i].currentLinearAcceleration = Vector3.zero;
             float foodSeekRadius = 0.8f;
             Collider[] colliders = Physics.OverlapSphere(boids[i].transform.position, foodSeekRadius);
 
@@ -112,14 +116,15 @@ public class BoidSimulationControl : MonoBehaviour
         }
     }
     private void FixedUpdate()
-    {   
-        for (int i = 0; i < boids.Count; i++)
+    { 
+       for (int i = 0; i < boids.Count; i++)
         {
             boids[i].currentLinearAcceleration = Vector3.zero;
         }
+        FoodArivvalBehaviour();
         foreach (Boid boid in boids)
         {
-            boid.currentLinearAcceleration += boid.ObstacleAvoidance(0.5f, boid.accelMax);         
+            boid.currentLinearAcceleration += boid.ObstacleAvoidance(0.8f, boid.accelMax);         
         }
         
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -130,7 +135,7 @@ public class BoidSimulationControl : MonoBehaviour
         {
             targetObject.transform.position = hitInfo.point;
         }
-        FoodArivvalBehaviour();
+        
 
         switch (controlMode)
         {
@@ -150,7 +155,7 @@ public class BoidSimulationControl : MonoBehaviour
 
         for (int i = 0; i < boids.Count; i++)
         {
-            boids[i] .currentLinearAcceleration = Vector3.ClampMagnitude(boids[i].currentLinearAcceleration, boids[i].accelMax);
+            boids[i].currentLinearAcceleration = Vector3.ClampMagnitude(boids[i].currentLinearAcceleration, boids[i].accelMax);
             boids[i].rigidBody.linearVelocity += boids[i].currentLinearAcceleration * Time.fixedDeltaTime;
 
         }
@@ -172,7 +177,7 @@ public class BoidSimulationControl : MonoBehaviour
             }
             else if (Input.GetMouseButton(1))
             {
-                boids[i].currentLinearAcceleration -= accel ;
+                boids[i].currentLinearAcceleration -= accel;
                 Debug.DrawRay(boids[i].transform.position, accel, Color.green);
 
 
