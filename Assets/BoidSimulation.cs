@@ -9,8 +9,11 @@ public class BoidSimulationControl : MonoBehaviour
     public GameObject BoidsPrefab = null;
     public GameObject foodPrefab = null;
     public GameObject targetObject = null;
+    public GameObject obstaclePrefab = null;
+
     public int numboidToSpawn = 10;
     public List<Boid> boids = null;
+
     
     public ControlMode controlMode = ControlMode.Seek;
     public enum ControlMode
@@ -73,14 +76,20 @@ public class BoidSimulationControl : MonoBehaviour
         {
             SpawnFood();
         }
+        if (Input.GetMouseButtonDown(0) && controlMode == ControlMode.Obstacle)
+        {
+            SpawnObstacle();
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            ResetSim();
+        }
     }
-    public void FoodArivvalBehaviour()
+   
+   public void FoodArrivalBehaviour()
     {
         for (int i = 0; i < boids.Count; i++)
-        {
-            boids[i].currentLinearAcceleration = Vector3.zero;
-        }
-        for (int i = 0; i < boids.Count; i++)
+
         {
             boids[i].currentLinearAcceleration = Vector3.zero;
             float foodSeekRadius = 0.8f;
@@ -91,40 +100,46 @@ public class BoidSimulationControl : MonoBehaviour
 
             foreach (Collider collider in colliders)
             {
-                boids[i].currentLinearAcceleration = Vector3.zero;
                 Food food = collider.GetComponent<Food>();
                 if (food != null)
                 {
-                    float distanceToFood =Vector3.Distance (food.transform.position, boids[i].transform.position);
-
+                    float distanceToFood = Vector3.Distance(food.transform.position, boids[i].transform.position);
                     if (distanceToFood < closestFoodDistance)
                     {
                         closestFoodDistance = distanceToFood;
                         closestFood = food;
                     }
-                    
                 }
             }
-            if ( closestFood != null)
+            if (closestFood != null)
             {
-                Vector3 accel = boids[i].Arrive(closestFood.transform.position, boids[i].accelMax, 0.05f, 0.3f);
-
+               Vector3 accel = boids[i].Arrive(closestFood.transform.position, boids[i].accelMax, 0.05f, 0.3f);
                 boids[i].currentLinearAcceleration += accel;
                 Debug.DrawRay(boids[i].transform.position, accel, Color.green);
+                
+                if (closestFoodDistance < 0.06f)
+                {
+                    Destroy(closestFood.gameObject);
+               
+                }
             }
-            
+             
+
+
+
         }
     }
+
     private void FixedUpdate()
     { 
        for (int i = 0; i < boids.Count; i++)
         {
             boids[i].currentLinearAcceleration = Vector3.zero;
         }
-        FoodArivvalBehaviour();
+        FoodArrivalBehaviour();
         foreach (Boid boid in boids)
         {
-            boid.currentLinearAcceleration += boid.ObstacleAvoidance(0.8f, boid.accelMax);         
+            boid.currentLinearAcceleration += boid.ObstacleAvoidance(0.4f, boid.accelMax);         
         }
         
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -164,50 +179,71 @@ public class BoidSimulationControl : MonoBehaviour
     {
         Instantiate(foodPrefab, targetObject.transform.position, Random.rotation);
     }
+    private void SpawnObstacle()
+    {
+        Instantiate(obstaclePrefab, targetObject.transform.position, Quaternion.identity);
+    }
     private void SeekModeControl()
     {
+        
         for (int i = 0; i < boids.Count; i++)
         {
-            Vector3 accel = boids[i].Seek(targetObject.transform.position, boids[i].accelMax);
 
+            Vector3 accel;
             if (Input.GetMouseButton(0))
             {
+                accel = boids[i].Seek(targetObject.transform.position, boids[i].accelMax);
                 boids[i].currentLinearAcceleration += accel;
                 Debug.DrawRay(boids[i].transform.position, accel, Color.green);
             }
             else if (Input.GetMouseButton(1))
             {
-                boids[i].currentLinearAcceleration -= accel;
-                Debug.DrawRay(boids[i].transform.position, accel, Color.green);
-
-
+                accel = boids[i].Flee(targetObject.transform.position, boids[i].accelMax);
+                boids[i].currentLinearAcceleration += accel;
+                Debug.DrawRay(boids[i].transform.position, accel, Color.red);
             }
+            
         }
     }
+    private void ResetSim()
+    {
+        foreach (Boid b in boids)
+        {
+            Destroy(b.gameObject);
+        }
+        boids.Clear();
+        foreach (GameObject food in GameObject.FindGameObjectsWithTag("Food"))
+        {
+            Destroy(food);
+        }
+        foreach (GameObject obstacle in GameObject.FindGameObjectsWithTag("Obstacle"))
+        {
+            Destroy(obstacle);
+        }
+        Start();
+    }
 
+   
     private void PursueModeControl()
     {
-
         for (int i = 0; i < boids.Count; i++)
-        {
-            Vector3 accel = boids[i].Pursue(targetObject.transform.position, boids[i].accelMax, boids[i].speedMax);
+        { 
+            Vector3 accel;
 
-            if (!Input.GetMouseButtonDown(0))
+
+            if (Input.GetMouseButton(0))
             {
-                boids[i].rigidBody.linearVelocity += accel * Time.deltaTime;
+                accel = boids[i].Pursue(targetObject.transform.position, boids[i].accelMax, boids[i].speedMax);
+             boids[i].currentLinearAcceleration += accel;
                 Debug.DrawRay(boids[i].transform.position, accel, Color.green);
 
             }
-            else if (!Input.GetMouseButtonDown(1))
-            {
-                boids[i].rigidBody.linearVelocity -= accel * Time.deltaTime;
-                Debug.DrawRay(boids[i].transform.position, accel, Color.green);
-
+            else if (Input.GetMouseButton(1))
+            { 
+                accel = boids[i].Evade(targetObject.transform.position, boids[i].accelMax, boids[i].speedMax);
+                boids[i].currentLinearAcceleration += accel;
+                Debug.DrawRay(boids[i].transform.position, accel, Color.red);
             }
-            boids[i].rigidBody.linearVelocity += accel * Time.fixedDeltaTime;
-            Debug.DrawRay(boids[i].transform.position, accel, Color.green);
-
         }
-
     }
 }

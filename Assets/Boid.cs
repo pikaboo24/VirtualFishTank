@@ -51,6 +51,13 @@ public class Boid : MonoBehaviour
 
 
     }
+    public Vector3 Flee(Vector3 target, float acceleration)
+    {
+        Vector3 fromTarget = target - transform.position;
+        Vector3 fromTargetNormalized = fromTarget.normalized;
+        Vector3 accel = -fromTargetNormalized * acceleration;
+        return accel;
+    }
     public Vector3 Pursue(Vector3 target, float acceleration, float desiredSpeed)
     {
         Vector3 toTarget = target - transform.position;
@@ -61,6 +68,15 @@ public class Boid : MonoBehaviour
 
         Vector3 deltaVel = desiredVelocity - rigidBody.linearVelocity;
 
+        Vector3 accel = deltaVel.normalized * acceleration;
+        return accel;
+    }
+    public Vector3 Evade(Vector3 target, float acceleration, float desiredSpeed)
+    {
+        Vector3 fromTarget = transform.position - target;
+        Vector3 fromTargetNormalized = fromTarget.normalized;
+        Vector3 desiredVelocity = fromTargetNormalized * desiredSpeed;
+        Vector3 deltaVel = desiredVelocity - rigidBody.linearVelocity;
         Vector3 accel = deltaVel.normalized * acceleration;
         return accel;
     }
@@ -97,43 +113,37 @@ public class Boid : MonoBehaviour
      
         return accel;
     }
+   
     public Vector3 ObstacleAvoidance(float lookAheadDistance, float acceleration)
-     {
-         Vector3 accelOut = Vector3.zero;
+    {
+        Vector3 accelOut = Vector3.zero;
 
-         Ray WhiskerLeft = new Ray (transform.position, Quaternion.AngleAxis(-20, transform.up) * transform.forward);
-         Ray WhiskerRight = new Ray(transform.position, Quaternion.AngleAxis(20, transform.up) * transform.forward);
+        Ray whiskerLeft = new Ray(transform.position, Quaternion.AngleAxis(-20, transform.up) * transform.forward);
+        Ray whiskerRight = new Ray(transform.position, Quaternion.AngleAxis(20, transform.up) * transform.forward);
 
-         RaycastHit hitInfoLeft;
-         RaycastHit hitInfoRight;
+        RaycastHit hitLeft;
+        RaycastHit hitRight;
 
-         bool didHitLeft = Physics.Raycast(WhiskerLeft,out hitInfoLeft, lookAheadDistance);
+        bool didHitLeft = Physics.Raycast(whiskerLeft, out hitLeft, lookAheadDistance, ~0, QueryTriggerInteraction.Collide);
+        bool didHitRight = Physics.Raycast(whiskerRight, out hitRight, lookAheadDistance, ~0, QueryTriggerInteraction.Collide);
 
+        Debug.DrawRay(whiskerLeft.origin, whiskerLeft.direction * lookAheadDistance, Color.yellow);
+        Debug.DrawRay(whiskerRight.origin, whiskerRight.direction * lookAheadDistance, Color.yellow);
 
-             if (didHitLeft)
-             {
-                 accelOut = transform.right * acceleration;
-                 Debug.DrawLine(WhiskerRight.origin, hitInfoLeft.point, Color.red);
+        if (didHitLeft && !didHitRight)
+        {
+            accelOut += transform.right * acceleration;
+        }
+        else if (didHitRight && !didHitLeft)
+        {
+            accelOut += -transform.right * acceleration;
+        }
+        else if (didHitLeft && didHitRight)
+        {
+            accelOut += (transform.right - transform.forward).normalized * acceleration;
+        }
 
-             }
-             else
-             {
-                Debug.DrawRay(WhiskerLeft.origin, WhiskerLeft.direction * lookAheadDistance, Color.yellow);
-             }
-
-             bool didHitRight = Physics.Raycast(WhiskerRight, out hitInfoRight, lookAheadDistance);
-         if (didHitRight)
-         {
-              accelOut = -transform.right * acceleration;
-
-             Debug.DrawLine(WhiskerRight.origin, hitInfoRight.point, Color.red);
-         }
-         else
-         {
-             Debug.DrawRay(WhiskerLeft.origin, WhiskerRight.direction * lookAheadDistance, Color.yellow);
-         }
-
-             return accelOut;
-     }
+        return accelOut;
+    }
 
 }
